@@ -229,6 +229,13 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway
                 'css' => 'width:200px',
                 'desc_tip' => true,
             ),
+			'xh_alipay_for_wc_disabled_in_mobile_browser' => array (
+					'title' => '手机浏览器中禁用',
+					'type' => 'checkbox',
+					'label' => '手机浏览器中禁用',
+					'default' => 'no',
+					'description' => '' 
+			),
            'WX_debug' => array(
                 'title' => __('Debug Log', 'wechatpay'),
                 'type' => 'checkbox',

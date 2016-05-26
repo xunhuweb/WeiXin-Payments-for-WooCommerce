@@ -15,11 +15,12 @@ WeiXin Payments for WooCommerce is a Wordpress plugin that allows to accept paym
 Your online store must use WooCommerce platform (free wordpress plugin).
 Once you installed and activated WooCommerce, you may install and activate WeChat Payments for WooCommerce.
 
-= Features: =
-* Only support weChat payment through website on PC
+= Features for free Version: =
+* Only support WeChat payment through website on PC
 * Support weChat payment through scan QR code
 * If payment completed,will automatically redirect to order recevied page
 * Support pay again with pending orders
+* You can settings do not display WeChat payment in Mobile
 
 = GitHub: =
 * Project url in GitHub: https://github.com/xunhuweb/WeiXin-Payments-for-WooCommerce
@@ -31,7 +32,7 @@ Once you installed and activated WooCommerce, you may install and activate WeCha
 = Support Mail: =
 * Mailbox: jeff@xunhuweb.com
 
-= Wechat Payment Pro: =
+= Features for Enterprise version: =
 * Perfect compatibility with WooCommerce
 * WeChat Pay payment gateway added into WooCommerce
 * Currency conversion with manual setting of exchange rate
@@ -45,7 +46,6 @@ Once you installed and activated WooCommerce, you may install and activate WeCha
 * WeChat address can be synchronized to WooCommerce shipping address
 * Suitable for any WooCommerce theme
 * Demo site：http://www.cqxunhu.com
-
 * WooCommerce子插件，完美兼容
 * 在WooCommerce添加微信支付网关
 * 支持汇率换算，需要手动设置汇率
