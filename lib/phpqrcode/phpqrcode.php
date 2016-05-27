@@ -807,10 +807,12 @@
                     }
                     
                     ?>
-                <style>
-                    .m { background-color: white; }
-                </style>
-                <?php
+<style>
+.m {
+	background-color: white;
+}
+</style>
+<?php
                     echo '<pre><tt><br/ ><br/ ><br/ >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
                     echo join("<br/ >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;", $frame);
                     echo '</tt></pre><br/ ><br/ ><br/ ><br/ ><br/ ><br/ >';
@@ -834,15 +836,32 @@
                 }
                 
                 ?>
-                <style>
-                    .p { background-color: yellow; }
-                    .m { background-color: #00FF00; }
-                    .s { background-color: #FF0000; }
-                    .c { background-color: aqua; }
-                    .x { background-color: pink; }
-                    .f { background-color: gold; }
-                </style>
-                <?php
+<style>
+.p {
+	background-color: yellow;
+}
+
+.m {
+	background-color: #00FF00;
+}
+
+.s {
+	background-color: #FF0000;
+}
+
+.c {
+	background-color: aqua;
+}
+
+.x {
+	background-color: pink;
+}
+
+.f {
+	background-color: gold;
+}
+</style>
+<?php
                 echo "<pre><tt>";
                 echo join("<br/ >", $frame);
                 echo "</tt></pre>";
@@ -974,7 +993,7 @@
         }
     
         //----------------------------------------------------------------------
-        private static function image($frame, $pixelPerPoint = 4, $outerFrame = 4) 
+        public static function image($frame, $pixelPerPoint = 4, $outerFrame = 4) 
         {
             $h = count($frame);
             $w = strlen($frame[0]);
@@ -3093,6 +3112,12 @@
             $enc = QRencode::factory($level, $size, $margin);
             return $enc->encodePNG($text, $outfile, $saveandprint=false);
         }
+        
+        public static function image($text, $level = QR_ECLEVEL_L, $size = 3, $margin = 4)
+        {
+        	$enc = QRencode::factory($level, $size, $margin);
+        	return $enc->encodeImage($text);
+        }
 
         //----------------------------------------------------------------------
         public static function text($text, $outfile = false, $level = QR_ECLEVEL_L, $size = 3, $margin = 4) 
@@ -3306,6 +3331,29 @@
                 QRtools::log($outfile, $e->getMessage());
             
             }
+        }
+        
+        public function encodeImage($intext)
+        {
+        	try {
+        
+        		ob_start();
+        		$tab = $this->encode($intext);
+        		$err = ob_get_contents();
+        		ob_end_clean();
+        
+        		if ($err != '')
+        			QRtools::log(false, $err);
+        
+        		$maxSize = (int)(QR_PNG_MAXIMUM_SIZE / (count($tab)+2*$this->margin));
+        
+        		return QRimage::image($tab,  min(max(1, $this->size), $maxSize), $this->margin);
+        
+        	} catch (Exception $e) {
+        
+        		QRtools::log(false, $e->getMessage());
+        
+        	}
         }
     }
 
