@@ -17,10 +17,6 @@ if (! defined ( 'XH_WC_WEIXINPAY' )) {
 	return;
 }
 
-define('XH_WC_WeChat_DIR',rtrim(plugin_dir_path(__FILE__),'/'));
-define('XH_WC_WeChat_URL',rtrim(plugin_dir_url(__FILE__),'/'));
-
-
 function wc_wechatpay_gateway_init() {
 
     if( !class_exists('WC_Payment_Gateway') )  return;
