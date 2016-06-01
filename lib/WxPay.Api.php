@@ -22,7 +22,7 @@ class WxPayApi
 	 * @throws WxPayException
 	 * @return 成功时返回，其他抛异常
 	 */
-	public static function unifiedOrder($inputObj, $timeOut = 10,$WxCfg)
+	public static function unifiedOrder($inputObj, $timeOut = 60,$WxCfg)
 	{
 		$url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 		//检测必填参数
@@ -76,7 +76,7 @@ class WxPayApi
 	 * @throws WxPayException
 	 * @return 成功时返回，其他抛异常
 	 */
-	public static function report($inputObj, $timeOut = 1,$WxCfg)
+	public static function report($inputObj, $timeOut = 60,$WxCfg)
 	{
 		$url = "https://api.mch.weixin.qq.com/payitil/report";
 		//检测必填参数
@@ -114,7 +114,7 @@ class WxPayApi
 	 * @throws WxPayException
 	 * @return 成功时返回，其他抛异常
 	 */
-	public static function bizpayurl($inputObj, $timeOut = 6,$WxCfg)
+	public static function bizpayurl($inputObj, $timeOut = 60,$WxCfg)
 	{
 		if(!$inputObj->IsProduct_idSet()){
 			throw new WxPayException("生成二维码，缺少必填参数product_id！");
@@ -139,7 +139,7 @@ class WxPayApi
      * @throws WxPayException
      * @return 成功时返回，其他抛异常
      */
-    public static function orderQuery($inputObj, $WxCfg,$timeOut = 6)
+    public static function orderQuery($inputObj, $WxCfg,$timeOut = 60)
     {
         $url = "https://api.mch.weixin.qq.com/pay/orderquery";
         //检测必填参数
@@ -260,7 +260,7 @@ class WxPayApi
 	 * @param int $second   url执行超时时间，默认30s
 	 * @throws WxPayException
 	 */
-	private static function postXmlCurl($xml, $url, $useCert = false, $second = 30,$WxCfg)
+	private static function postXmlCurl($xml, $url, $useCert = false, $second = 60,$WxCfg)
 	{		
 		$ch = curl_init();
 		//设置超时

@@ -36,7 +36,7 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$this->has_fields = false;
 		$this->method_title = __ ( 'WeChatPay', 'wechatpay' ); // checkout option title
 		$this->order_button_text = __ ( 'Proceed to WeChatPay', 'wechatpay' );
-		$this->notify_url = WC ()->api_request_url ( 'xh_weixinpay_for_wc_core' );
+		$this->notify_url = XH_WC_WeChat_URL.'/notify.php';
 		
 		$this->init_form_fields ();
 		$this->init_settings ();
@@ -51,7 +51,6 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$this->order_title_format = $this->get_option ( 'order_title_format' );
 		$this->exchange_rate = $this->get_option ( 'exchange_rate' );
 		$this->order_prefix = $this->get_option ( 'order_prefix' );
-		$this->notify_url = WC ()->api_request_url ( 'xh_weixinpay_for_wc_core' );
 		$this->ipn = null;
 		
 		$this->logger = Log::Init ( new CLogFileHandler ( plugin_dir_path ( __FILE__ ) . "logs/" . date ( 'Y-m-d' ) . '.log' ), 15 );
@@ -73,10 +72,10 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 				'process_admin_options' 
 		) );
 		
-		add_action ( 'woocommerce_api_wc_wechatpay', array (
-				$this,
-				'check_wechatpay_response' 
-		) );
+// 		add_action ( 'woocommerce_api_wc_wechatpay', array (
+// 				$this,
+// 				'check_wechatpay_response' 
+// 		) );
 		add_action ( 'wp_enqueue_scripts', array (
 				$this,
 				'WX_enqueue_script_onCheckout' 
@@ -111,7 +110,8 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 			}
 		}
 	}
-	function check_wechatpay_response() {
+	
+	public function check_wechatpay_response() {
 		$xml = $GLOBALS ['HTTP_RAW_POST_DATA'];
 		if(empty($xml)){
 			$xml =file_get_contents("php://input");
@@ -202,14 +202,16 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 						'type' => 'text',
 						'description' => __ ( 'This controls the title which the user sees during checkout.', 'wechatpay' ),
 						'default' => __ ( 'WeChatPay', 'wechatpay' ),
-						'desc_tip' => true 
+						'desc_tip' => true ,
+						'css' => 'width:400px'
 				),
 				'description' => array (
 						'title' => __ ( 'Description', 'wechatpay' ),
 						'type' => 'textarea',
 						'description' => __ ( 'This controls the description which the user sees during checkout.', 'wechatpay' ),
 						'default' => __ ( "Pay via WeChatPay, if you don't have an WeChatPay account, you can also pay with your debit card or credit card", 'wechatpay' ),
-						'desc_tip' => true 
+						'desc_tip' => true ,
+						'css' => 'width:400px'
 				),
 				'wechatpay_appID' => array (
 						'title' => __ ( 'Application ID', 'wechatpay' ),
@@ -227,7 +229,7 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 						'title' => __ ( 'WeChatPay Key', 'wechatpay' ),
 						'type' => 'text',
 						'description' => __ ( 'Please enter your WeChatPay Key; this is needed in order to take payment.', 'wechatpay' ),
-						'css' => 'width:200px',
+						'css' => 'width:400px',
 						'desc_tip' => true 
 				),
 				'xh_alipay_for_wc_disabled_in_mobile_browser' => array (
@@ -321,9 +323,10 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$input->SetTime_expire ( $expiredTime );
 		// $input->SetGoods_tag("tag");
 		$input->SetNotify_url ( $this->notify_url );
+		//print $this->notify_url ;
 		$input->SetTrade_type ( "NATIVE" );
 		$input->SetProduct_id ( $order_id );
-		$result = WxPayApi::unifiedOrder ( $input, 6, $WxCfg );
+		$result = WxPayApi::unifiedOrder ( $input, 60, $WxCfg );
 		Log::DEBUG ( 'Response of WxPayApi::unifiedOrder:' . print_r ( $result, true ) );
 		return $result ["code_url"];
 	}
