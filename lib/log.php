@@ -13,16 +13,21 @@ class CLogFileHandler implements ILogHandler
 	
 	public function __construct($file = '')
 	{
-		$this->handle = fopen($file,'a');
+		try {
+			$this->handle = fopen($file,'a');
+		} catch (Exception $e) {
+		}
 	}
 	
 	public function write($msg)
 	{
+		if($this->handle)
 		fwrite($this->handle, $msg, 4096);
 	}
 	
 	public function __destruct()
 	{
+		if($this->handle)
 		fclose($this->handle);
 	}
 }
@@ -61,16 +66,17 @@ class Log
 	
 	public static function DEBUG($msg)
 	{
+		if(self::$instance)
 		self::$instance->write(1, $msg);
 	}
 	
 	public static function WARN($msg)
-	{
+	{if(self::$instance)
 		self::$instance->write(4, $msg);
 	}
 	
 	public static function ERROR($msg)
-	{
+	{if(!self::$instance){return;}
 		$debugInfo = debug_backtrace();
 		$stack = "[";
 		foreach($debugInfo as $key => $val){
@@ -89,7 +95,7 @@ class Log
 	}
 	
 	public static function INFO($msg)
-	{
+	{if(!self::$instance){return;}
 		self::$instance->write(2, $msg);
 	}
 	

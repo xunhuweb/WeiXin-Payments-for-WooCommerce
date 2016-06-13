@@ -21,6 +21,8 @@ Once you installed and activated WooCommerce, you may install and activate WeCha
 * If payment completed,will automatically redirect to order recevied page
 * Support pay again with pending orders
 * You can settings do not display WeChat payment in Mobile
+* Supporting refund to micro-change or the bank card. Note:refunds need Wechat Pay certificate upload plug-in 'CERT' directory
+* Need enterprise or cross-border payment of Wechat Pay WooCommerce plugin,contact us Jeff@xunhuweb.com
 
 = GitHub: =
 * Project url in GitHub: https://github.com/xunhuweb/WeiXin-Payments-for-WooCommerce
@@ -43,6 +45,7 @@ Once you installed and activated WooCommerce, you may install and activate WeCha
 * Red envelope of cashback: the amount of cashback will be sent directly after the payment in a red envelope.
 * WeChat automatic login，and synchronize avatar and nickname
 * Mandatory login or not can be set manually
+* Supporting refund to micro-change or the bank card. Note:refunds need Wechat Pay certificate upload plug-in 'CERT' directory
 * WeChat address can be synchronized to WooCommerce shipping address
 * Suitable for any WooCommerce theme
 * Demo site：http://www.cqxunhu.com
@@ -52,13 +55,16 @@ Once you installed and activated WooCommerce, you may install and activate WeCha
 * PC端支持微信扫码支付
 * 微信端支持H5公众号支付
 * 新增微信红包促销功能
-* 分享产品到朋友圈获得随机红包
-* 红包返现促销，支付成功后返现金额直接发送红包
+* 红包推广：分享产品,产品被购买获得红包
+* 红包返现：微信支付成功送红包，刺激下单支付
 * 新增微信自动登录,并且同步微信头像
+* 退款功能，直接退款到微信零钱或银行卡
 * 可设置是否强制登录微信
 * 微信地址同步到收货地址
 * 适合任意WooCommerce主题
-* 需要企业版或国际版的WooCommerce微信支付插件可联系我们 qq:6347007
+* 需要企业版或跨境支付版的WooCommerce微信支付插件可联系我们 qq:6347007
+* 演示站点：http://www.cqxunhu.com/
+* 帮助文档：http://www.wpweixin.net/blog/192.html
 
 == Installation ==
 1.  Install WooCommerce plugin and configure your store (if you haven't done so already - http://wordpress.org/plugins/woocommerce/).
@@ -74,9 +80,9 @@ Once you installed and activated WooCommerce, you may install and activate WeCha
 2. Checkout with option for wechat payment.
 3. Order pay screen, including QR code of wechat  and payment amount.
 4. Pay screen in weChat
-5. weChat mobile
-6. weChat mobile
-7. weChat mobile
+5. weChat mobile Screenshots
+6. weChat mobile Screenshots
+7. weChat mobile Screenshots
 
 
 

@@ -1,7 +1,7 @@
 <?php
 define('XH_LOGIN_IGNORE', true);
 define('WP_USE_THEMES', false);
-require_once('../../../wp-load.php');
+//require_once('../../../wp-load.php');
 
 error_reporting ( E_ERROR );
 if(!class_exists('QRcode')){

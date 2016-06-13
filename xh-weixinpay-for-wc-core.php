@@ -15,6 +15,8 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 	var $lib_path;
 	var $charset;
 	public function __construct() {
+		//支持退款
+		array_push($this->supports,'refunds');
 		$this->current_currency = get_option ( 'woocommerce_currency' );
 		$this->multi_currency_enabled = in_array ( 'woocommerce-multilingual/wpml-woocommerce.php', apply_filters ( 'active_plugins', get_option ( 'active_plugins' ) ) ) && get_option ( 'icl_enable_multi_currency' ) == 'yes';
 		$this->supported_currencies = array (
@@ -36,7 +38,7 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$this->has_fields = false;
 		$this->method_title = __ ( 'WeChatPay', 'wechatpay' ); // checkout option title
 		$this->order_button_text = __ ( 'Proceed to WeChatPay', 'wechatpay' );
-		$this->notify_url = WC ()->api_request_url ( 'xh_weixinpay_for_wc_core' );
+		$this->notify_url = XH_WC_WeChat_URL.'/notify.php';
 		
 		$this->init_form_fields ();
 		$this->init_settings ();
@@ -51,37 +53,44 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$this->order_title_format = $this->get_option ( 'order_title_format' );
 		$this->exchange_rate = $this->get_option ( 'exchange_rate' );
 		$this->order_prefix = $this->get_option ( 'order_prefix' );
-		$this->notify_url = WC ()->api_request_url ( 'xh_weixinpay_for_wc_core' );
 		$this->ipn = null;
 		
-		$this->logger = Log::Init ( new CLogFileHandler ( plugin_dir_path ( __FILE__ ) . "logs/" . date ( 'Y-m-d' ) . '.log' ), 15 );
-		;
 		if ('yes' == $this->debug) {
-			$this->log = new WC_Logger ();
+			Log::Init ( new CLogFileHandler ( plugin_dir_path ( __FILE__ ) . "logs/" . date ( 'Y-m-d' ) . '.log' ), 15 );
 		}
 		
-		add_action ( 'admin_notices', array (
-				$this,
-				'requirement_checks' 
-		) );
-		add_action ( 'woocommerce_update_options_payment_gateways_' . $this->id, array (
-				$this,
-				'process_admin_options' 
-		) ); // WC >= 2.0
-		add_action ( 'woocommerce_update_options_payment_gateways', array (
-				$this,
-				'process_admin_options' 
-		) );
-		
-		add_action ( 'woocommerce_api_wc_wechatpay', array (
-				$this,
-				'check_wechatpay_response' 
-		) );
-		add_action ( 'wp_enqueue_scripts', array (
-				$this,
-				'WX_enqueue_script_onCheckout' 
-		) );
+		$this->enabled = 'yes'==$this->get_option ( 'enabled' );
+		if(!xh_isWeixinClient()&&xh_isWebApp()){
+			$disabled	=$this->get_option('xh_alipay_for_wc_disabled_in_mobile_browser');
+			if($disabled=='yes'){
+					$this->enabled=false;
+				}
+		}
 	}
+	
+	public  function get_order_title($order,$limit=100,$trimmarker='...'){
+		$title='#'.$order->id;
+		$order_items =$order->get_items();
+		$order_item_qty =count($order_items);
+		if($order_item_qty>0){
+			$title.='|';
+			$index =0;
+			foreach ($order_items as $item_id =>$item){
+				$title.= $item['name'];
+				if($index++<($order_item_qty-1)){
+					$title.=',';
+				}
+			}
+		}else{
+			$title.='|'.get_option ( 'blogname' );
+		}
+	
+		$title=substr($title, 0,$limit);
+		$title=mb_strimwidth ( $title, 0,strlen($title), '...');
+	
+		return $title;
+	}
+	
 	public function WX_Loop_Order_Status() {
 		$order_id = $_GET ['orderId'];
 		$order = new WC_Order ( $order_id );
@@ -111,7 +120,8 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 			}
 		}
 	}
-	function check_wechatpay_response() {
+	
+	public function check_wechatpay_response() {
 		$xml = $GLOBALS ['HTTP_RAW_POST_DATA'];
 		if(empty($xml)){
 			$xml =file_get_contents("php://input");
@@ -123,9 +133,9 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 			Log::DEBUG ( 'weChat Async IPN message:' . print_r ( $xml, true ) );
 			$order_id = $this->ipn ['attach'];
 			$order = new WC_Order ( $order_id );
-			$order->payment_complete ();
-			$trade_no = $this->ipn ['transaction_id'];
-			update_post_meta ( $order_id, 'WeChatPay Trade No.', wc_clean ( $trade_no ) );
+			$order->payment_complete ($this->ipn ['transaction_id']);
+			//$trade_no = $this->ipn ['transaction_id'];
+			//update_post_meta ( $order_id, 'WeChatPay Trade No.', wc_clean ( $trade_no ) );
 			
 			$reply = new WxPayNotifyReply ();
 			$reply->SetReturn_code ( "SUCCESS" );
@@ -148,39 +158,67 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		include_once ($lib . '/WxPay.Config.php');
 		include_once ($lib . '/log.php');
 	}
+
+	public function process_refund( $order_id, $amount = null, $reason = ''){
+		$WxCfg = $this->getWXCfg ();
+		$order = new WC_Order ($order_id );
+		if(!$order){
+			return new WP_Error( 'invalid_order','错误的订单' );
+		}
 	
-	/**
-	 * Check if requirements are met and display notices
-	 *
-	 * @access public
-	 * @return void
-	 */
-	function requirement_checks() {
-		if (! in_array ( $this->current_currency, array (
-				'RMB',
-				'CNY' 
-		) ) && ! $this->exchange_rate) {
-			echo '<div class="error"><p>' . '微信支付已启用，但您的主货币不是人民币，请<a href="' . admin_url ( 'admin.php?page=wc-settings&tab=checkout&section=xh_weixinpay_for_wc_core' ) . '">设置转人民币的汇率</a>.' . '</p></div>';
+		$trade_no =$order->get_transaction_id();
+		if (empty ( $trade_no )) {
+			return new WP_Error( 'invalid_order', '未找到微信支付交易号或订单未支付' );
 		}
-	}
-	function is_available() {
-		$is_available = ('yes' === $this->enabled) ? true : false;
-		
-		if ($this->multi_currency_enabled) {
-			if (! in_array ( get_woocommerce_currency (), array (
-					'RMB',
-					'CNY' 
-			) ) && ! $this->exchange_rate) {
-				$is_available = false;
+	
+		$total = ( int ) ($order->get_total () * 100);
+		$amount = ( int ) ($amount * 100);
+	
+		if (! in_array (  get_woocommerce_currency(), array (
+				'RMB',
+				'CNY'
+		) )) {
+			$exchange_rate = floatval($this->get_option('exchange_rate'));
+			if($exchange_rate<=0){
+				$exchange_rate=1;
 			}
-		} else if (! in_array ( $this->current_currency, array (
-				'RMB',
-				'CNY' 
-		) ) && ! $this->exchange_rate) {
-			$is_available = false;
+				
+			$total = round ( $total * $exchange_rate, 2 );
+			$amount = round ( $amount * $exchange_rate, 2 );
 		}
-		
-		return $is_available;
+	
+		if($amount<=0||$amount>$total){
+			return new WP_Error( 'invalid_order',__('无效的退款金额' ,XH_WECHAT) );
+		}
+	
+		$transaction_id = $trade_no;
+		$total_fee = $total;
+		$refund_fee = $amount;
+	
+		$input = new WxPayRefund ();
+		$input->SetTransaction_id ( $transaction_id );
+		$input->SetTotal_fee ( $total_fee );
+		$input->SetRefund_fee ( $refund_fee );
+	
+		$input->SetOut_refund_no ( $order->id.time());
+		$input->SetOp_user_id ( $WxCfg->getMCHID());
+	
+		try {
+			$result = WxPayApi::refund ( $input,60 ,$WxCfg);
+			if ($result ['result_code'] == 'FAIL' || $result ['return_code'] == 'FAIL') {
+				Log::DEBUG ( " XHWxPayApi::orderQuery:" . json_encode ( $result ) );
+				throw new Exception ("return_msg:". $result ['return_msg'].';err_code_des:'. $result ['err_code_des'] );
+			}
+	
+		} catch ( Exception $e ) {
+			return new WP_Error( 'invalid_order',$e->getMessage ());
+		}
+	
+		return true;
+	}
+	
+	function is_available() {
+		return $this->enabled ;
 	}
 	
 	/**
@@ -202,14 +240,16 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 						'type' => 'text',
 						'description' => __ ( 'This controls the title which the user sees during checkout.', 'wechatpay' ),
 						'default' => __ ( 'WeChatPay', 'wechatpay' ),
-						'desc_tip' => true 
+						//'desc_tip' => true ,
+						'css' => 'width:400px'
 				),
 				'description' => array (
 						'title' => __ ( 'Description', 'wechatpay' ),
 						'type' => 'textarea',
 						'description' => __ ( 'This controls the description which the user sees during checkout.', 'wechatpay' ),
 						'default' => __ ( "Pay via WeChatPay, if you don't have an WeChatPay account, you can also pay with your debit card or credit card", 'wechatpay' ),
-						'desc_tip' => true 
+						//'desc_tip' => true ,
+						'css' => 'width:400px'
 				),
 				'wechatpay_appID' => array (
 						'title' => __ ( 'Application ID', 'wechatpay' ),
@@ -227,8 +267,8 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 						'title' => __ ( 'WeChatPay Key', 'wechatpay' ),
 						'type' => 'text',
 						'description' => __ ( 'Please enter your WeChatPay Key; this is needed in order to take payment.', 'wechatpay' ),
-						'css' => 'width:200px',
-						'desc_tip' => true 
+						'css' => 'width:400px',
+						//'desc_tip' => true 
 				),
 				'xh_alipay_for_wc_disabled_in_mobile_browser' => array (
 						'title' => __ ( 'Disabled in mobile browser', 'wechatpay' ),
@@ -236,7 +276,7 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 						'default' => 'no',
 						'description' => '' 
 				),
-				'WX_debug' => array (
+				'debug' => array (
 						'title' => __ ( 'Debug Log', 'wechatpay' ),
 						'type' => 'checkbox',
 						'label' => __ ( 'Enable logging', 'wechatpay' ),
@@ -245,19 +285,14 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 				) 
 		);
 		
-		if (! in_array ( $this->current_currency, array (
-				'RMB',
-				'CNY' 
-		) )) {
-			
-			$this->form_fields ['exchange_rate'] = array (
+		$this->form_fields ['exchange_rate'] = array (
 					'title' => __ ( 'Exchange Rate', 'wechatpay' ),
 					'type' => 'text',
+					'default'=>1,
 					'description' => sprintf ( __ ( "Please set the %s against Chinese Yuan exchange rate, eg if your currency is US Dollar, then you should enter 6.19", 'wechatpay' ), $this->current_currency ),
 					'css' => 'width:80px;',
 					'desc_tip' => true 
 			);
-		}
 	}
 	
 	/**
@@ -271,9 +306,9 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		?>
 <h3>微信支付(免费版)</h3>
 <p>
-	企业版本支持微信原生支付（H5公众号）、微信登录、微信红包促销、微信收货地址同步。<br />若需要企业版本，请联系QQ:<a
+	企业版本支持微信原生支付（H5公众号）、微信登录、微信红包推广/促销、微信收货地址同步、微信退款等功能。<br />若需要企业版本，请联系QQ:<a
 		href="http://wpa.qq.com/msgrd?v=3&uin=6347007&site=qq&menu=yes"
-		target="_blank">6347007</a>或移步<a href="http://www.wpweixin.net/"
+		target="_blank">6347007</a>或<a href="http://www.wpweixin.net/"
 		target="_blank">迅虎网络</a>查看更多内容
 </p>
 
@@ -299,7 +334,7 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$total = $order->get_total ();
 		$totalFee = ( int ) ($total * 100);
 		$input = new WxPayUnifiedOrder ();
-		$input->SetBody ( "Shop Name: " . get_option ( 'blogname' ) );
+		$input->SetBody ($this->get_order_title($order) );
 		$input->SetDetail ( "" );
 		$input->SetAttach ( $order_id );
 		$input->SetOut_trade_no ( date ( "YmdHis" ) );
@@ -308,6 +343,8 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 				'RMB',
 				'CNY' 
 		) )) {
+			$this->exchange_rate = floatval($this->exchange_rate);
+			if($this->exchange_rate<=0){$this->exchange_rate=1;}
 			$totalFee = round ( $totalFee * $this->exchange_rate, 2 );
 		}
 		$input->SetTotal_fee ( $totalFee );
@@ -318,12 +355,13 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		$expiredTime = $startTime + 600;
 		
 		$input->SetTime_start ( $startTime );
-		$input->SetTime_expire ( $expiredTime );
+		//$input->SetTime_expire ( $expiredTime );
 		// $input->SetGoods_tag("tag");
 		$input->SetNotify_url ( $this->notify_url );
+		//print $this->notify_url ;
 		$input->SetTrade_type ( "NATIVE" );
 		$input->SetProduct_id ( $order_id );
-		$result = WxPayApi::unifiedOrder ( $input, 6, $WxCfg );
+		$result = WxPayApi::unifiedOrder ( $input, 60, $WxCfg );
 		Log::DEBUG ( 'Response of WxPayApi::unifiedOrder:' . print_r ( $result, true ) );
 		return $result ["code_url"];
 	}
@@ -378,7 +416,7 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 	}
 	function receipt_page($order) {
 		if (! $this->qrUrl) {
-			Log::DEBUG ( 'Pay order with weChat payment' );
+			//Log::DEBUG ( 'Pay order with weChat payment' );
 			echo '<p>' . __ ( 'Please scan the QR code with WeChat to finish the payment.', 'wechatpay' ) . '</p>';
 			$this->genetateQR ( $order );
 		}

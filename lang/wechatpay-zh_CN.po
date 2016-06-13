@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Administration\n"
 "POT-Creation-Date: 2016-05-27 14:14+0800\n"
-"PO-Revision-Date: 2016-06-01 11:21+0800\n"
+"PO-Revision-Date: 2016-06-12 14:44+0800\n"
 "Last-Translator: ranj <ranj@evget.com>\n"
 "Language-Team: \n"
 "Language: zh_CN\n"
@@ -70,8 +70,8 @@ msgid ""
 "Please enter the Application ID,If you don't have one, <a href=\"https://pay."
 "weixin.qq.com\" target=\"_blank\">click here</a> to get."
 msgstr ""
-"请输入APP账号，如果没有，<a href=\"https://mp.weixin.qq.com\" target=\"_blank"
-"\">点击这里获取</a>"
+"请输入微信公众号AppID(应用ID)，如果没有，<a href=\"https://mp.weixin.qq.com"
+"\" target=\"_blank\">点击这里获取</a>"
 
 #: xh-weixinpay-for-wc-core.php:220
 msgid "Merchant ID"
@@ -87,14 +87,14 @@ msgstr ""
 
 #: xh-weixinpay-for-wc-core.php:226
 msgid "WeChatPay Key"
-msgstr ""
-"微信支付秘钥,如果没有，<a href=\"https://pay.weixin.qq.com\" target=\"_blank"
-"\">点击这里获取</a>"
+msgstr "微信商户支付密钥"
 
 #: xh-weixinpay-for-wc-core.php:228
 msgid ""
 "Please enter your WeChatPay Key; this is needed in order to take payment."
-msgstr "请输入你的微信秘钥"
+msgstr ""
+"请输入你的微信支付API 32位密钥。如果没有，<a href=\"https://pay.weixin.qq.com"
+"\" target=\"_blank\">点击这里获取</a>"
 
 #: xh-weixinpay-for-wc-core.php:233
 msgid "Disabled in mobile browser"
@@ -126,7 +126,7 @@ msgstr "请设置%s转人民币的汇率，例如您的主货币是美元，请�
 
 #: xh-weixinpay-for-wc-core.php:393
 msgid "Please scan the QR code with WeChat to finish the payment."
-msgstr "请通过微信扫描下方的二维码来完成支付。"
+msgstr "请通过微信扫描二维码完成支付。"
 
 #~ msgid ""
 #~ "Integrate the Chinese WeChat payment gateway with Woocommerce. WeChat is "

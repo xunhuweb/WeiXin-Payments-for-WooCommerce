@@ -2,8 +2,8 @@
 /*
  * Plugin Name: WeiXin Payments for WooCommerce
  * Plugin URI: http://www.wpweixin.net/xh/product/103 
- * Description:给Woocommerce系统添加微信支付功能,支持H5支付和扫码支付。若需要企业版本，请联系QQ:<a href="http://wpa.qq.com/msgrd?v=3&uin=6347007&site=qq&menu=yes" target="_blank">6347007</a> 
- * Version: 1.7.0
+ * Description:给Woocommerce系统添加微信支付功能,支持扫码支付和退款功能。若需要企业版本，请联系QQ:<a href="http://wpa.qq.com/msgrd?v=3&uin=6347007&site=qq&menu=yes" target="_blank">6347007</a> 
+ * Version: 1.8.0
  * Author: 迅虎网络 
  * Author URI:http://www.wpweixin.net 
  * Text Domain: WeiXin Payments for WooCommerce
@@ -35,6 +35,9 @@ function wc_wechatpay_gateway_init() {
     add_action( 'wp_ajax_WXLoopOrderStatus', array($WX, "WX_Loop_Order_Status" ) );
     add_action( 'wp_ajax_nopriv_WXLoopOrderStatus', array($WX, "WX_Loop_Order_Status") );
     add_action('woocommerce_receipt_wechatpay', array($WX, 'receipt_page'));
+    add_action ( 'woocommerce_update_options_payment_gateways_' . $WX->id, array ($WX,'process_admin_options') ); // WC >= 2.0
+    add_action ( 'woocommerce_update_options_payment_gateways', array ($WX,'process_admin_options') );
+    add_action ( 'wp_enqueue_scripts', array ($WX,'WX_enqueue_script_onCheckout') );
 }
 
  function xh_isWebApp(){
@@ -78,21 +81,8 @@ function wc_wechatpay_gateway_init() {
 function xh_isWeixinClient(){
 	return strripos($_SERVER['HTTP_USER_AGENT'],'micromessenger');
 }
-$invalid = false;
-//在手机浏览器是否禁用
-if(!xh_isWeixinClient()&&xh_isWebApp()){
-	$alipayOptions =get_option('woocommerce_wechatpay_settings');
-	if(isset($alipayOptions['xh_alipay_for_wc_disabled_in_mobile_browser'])){
-		$disabled	= $alipayOptions['xh_alipay_for_wc_disabled_in_mobile_browser'];
-		if(!empty($disabled)&&$disabled=='yes'){
-			$invalid=true;
-		}
-	}
-}
 
-if(!$invalid){
-	add_action( 'plugins_loaded', 'wc_wechatpay_gateway_init' );
-}
+add_action( 'plugins_loaded', 'wc_wechatpay_gateway_init' );
 
 /**
  * Add the gateway to WooCommerce
@@ -108,26 +98,26 @@ function woocommerce_wechatpay_add_gateway( $methods ) {
     return $methods;
 }
 
-/**
- * Display WeChatPay Trade No. for customer
- * @param array $total_rows
- * @param mixed $order
- * @return array
- */
-function wc_wechatpay_display_order_meta_for_customer( $total_rows, $order ){
-    $trade_no = get_post_meta( $order->id, 'WeChatPay Trade No.', true );
+// /**
+//  * Display WeChatPay Trade No. for customer
+//  * @param array $total_rows
+//  * @param mixed $order
+//  * @return array
+//  */
+// function wc_wechatpay_display_order_meta_for_customer( $total_rows, $order ){
+//     $trade_no = get_post_meta( $order->id, 'WeChatPay Trade No.', true );
 
-    if( !empty( $trade_no ) ){
-        $new_row['wechatpay_trade_no'] = array(
-            'label' => __( 'WeChatPay Trade No.:', 'wechatpay' ),
-            'value' => $trade_no
-        );
-        // Insert $new_row after shipping field
-        $total_rows = array_merge( array_splice( $total_rows,0,2), $new_row, $total_rows );
-    }
-    return $total_rows;
-}
-add_filter( 'woocommerce_get_order_item_totals', 'wc_wechatpay_display_order_meta_for_customer', 10, 2 );
+//     if( !empty( $trade_no ) ){
+//         $new_row['wechatpay_trade_no'] = array(
+//             'label' => __( 'WeChatPay Trade No.:', 'wechatpay' ),
+//             'value' => $trade_no
+//         );
+//         // Insert $new_row after shipping field
+//         $total_rows = array_merge( array_splice( $total_rows,0,2), $new_row, $total_rows );
+//     }
+//     return $total_rows;
+// }
+// add_filter( 'woocommerce_get_order_item_totals', 'wc_wechatpay_display_order_meta_for_customer', 10, 2 );
 
 function wc_wechatpay_plugin_edit_link( $links ){
     return array_merge(
