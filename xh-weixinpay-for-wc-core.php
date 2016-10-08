@@ -171,9 +171,11 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 			return new WP_Error( 'invalid_order', '未找到微信支付交易号或订单未支付' );
 		}
 	
-		$total = ( int ) ($order->get_total () * 100);
-		$amount = ( int ) ($amount * 100);
-	
+		$total = $order->get_total ();
+		$amount = $amount;
+        $preTotal = $total;
+        $preAmount = $amount;
+        
 		if (! in_array (  get_woocommerce_currency(), array (
 				'RMB',
 				'CNY'
@@ -186,7 +188,13 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 			$total = round ( $total * $exchange_rate, 2 );
 			$amount = round ( $amount * $exchange_rate, 2 );
 		}
-	
+        
+        $total = apply_filters('xh_woocommerce_payment_gateway_exchange_rate', $total,$preTotal,$this);
+        $amount = apply_filters('xh_woocommerce_payment_gateway_exchange_rate', $amount, $preAmount,$this);
+         
+        $total = ( int ) ( $total  * 100);
+		$amount = ( int ) ($amount * 100);
+        
 		if($amount<=0||$amount>$total){
 			return new WP_Error( 'invalid_order',__('无效的退款金额' ,XH_WECHAT) );
 		}
@@ -331,22 +339,29 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 	function getWXURI($order_id) {
 		$WxCfg = $this->getWXCfg ();
 		$order = new WC_Order ( $order_id );
-		$total = $order->get_total ();
-		$totalFee = ( int ) ($total * 100);
+        
+		
 		$input = new WxPayUnifiedOrder ();
 		$input->SetBody ($this->get_order_title($order) );
 		$input->SetDetail ( "" );
 		$input->SetAttach ( $order_id );
 		$input->SetOut_trade_no ( date ( "YmdHis" ) );
-		
+		$total = $order->get_total ();
+        $preTotal = $total;
 		if (! in_array ( $this->current_currency, array (
 				'RMB',
 				'CNY' 
 		) )) {
 			$this->exchange_rate = floatval($this->exchange_rate);
-			if($this->exchange_rate<=0){$this->exchange_rate=1;}
-			$totalFee = round ( $totalFee * $this->exchange_rate, 2 );
+                if($this->exchange_rate<=0){
+                $this->exchange_rate=1;
+            }
+			$total = round ($total * $this->exchange_rate, 2 );
 		}
+        
+        $total = apply_filters('xh_woocommerce_payment_gateway_exchange_rate', $total,$preTotal,$this);
+        $totalFee = ( int ) ($total * 100);
+        
 		$input->SetTotal_fee ( $totalFee );
 		
 		$date = new DateTime ();

@@ -14,7 +14,7 @@ class CLogFileHandler implements ILogHandler
 	public function __construct($file = '')
 	{
 		try {
-			$this->handle = fopen($file,'a');
+			$this->handle = @fopen($file,'a');
 		} catch (Exception $e) {
 		}
 	}

@@ -82,7 +82,7 @@ function xh_isWeixinClient(){
 	return strripos($_SERVER['HTTP_USER_AGENT'],'micromessenger');
 }
 
-add_action( 'plugins_loaded', 'wc_wechatpay_gateway_init' );
+add_action( 'init', 'wc_wechatpay_gateway_init' );
 
 /**
  * Add the gateway to WooCommerce
