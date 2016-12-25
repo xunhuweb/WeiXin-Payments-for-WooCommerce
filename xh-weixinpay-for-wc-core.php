@@ -430,11 +430,9 @@ class xh_weixinpay_for_wc_core extends WC_Payment_Gateway {
 		echo '<img id="WxQRCode" alt="QR Code" style="width:200px;height:200px" OId =' . $order_id . " loopUrl=" . $this->notify_url . " src=" . $qrUrl . '>';
 	}
 	function receipt_page($order) {
-		if (! $this->qrUrl) {
-			//Log::DEBUG ( 'Pay order with weChat payment' );
-			echo '<p>' . __ ( 'Please scan the QR code with WeChat to finish the payment.', 'wechatpay' ) . '</p>';
-			$this->genetateQR ( $order );
-		}
+        //Log::DEBUG ( 'Pay order with weChat payment' );
+        echo '<p>' . __ ( 'Please scan the QR code with WeChat to finish the payment.', 'wechatpay' ) . '</p>';
+        $this->genetateQR ( $order );
 	}
 	function getWXCfg() {
 		$weChatOptions = get_option ( 'woocommerce_wechatpay_settings' );
