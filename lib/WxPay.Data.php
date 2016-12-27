@@ -197,7 +197,7 @@ class WxPayResults extends WxPayDataBase
      * @param string $xml
      * @throws WxPayException
      */
-	public static function Init($xml,$WxCfg=null)
+	public static function Init($xml)
 	{	
 		$obj = new self();
 		$obj->FromXml($xml);
