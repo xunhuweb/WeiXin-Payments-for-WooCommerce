@@ -78,7 +78,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	            'title' => __ ( 'Exchange Rate', 'wechatpay' ),
 	            'type' => 'text',
 	            'default'=>1,
-	            'description' => sprintf ( __ ( "Please set the %s against Chinese Yuan exchange rate, eg if your currency is US Dollar, then you should enter 6.19", 'wechatpay' ), $this->current_currency ),
+	            'description' =>  __ ( "Please set current currency against Chinese Yuan exchange rate, eg if your currency is US Dollar, then you should enter 6.19", 'wechatpay' ),
 	            'css' => 'width:80px;',
 	            'desc_tip' => true
 	        )
@@ -151,7 +151,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	}
 	
 	public function check_wechatpay_response() {
-		$xml = $GLOBALS ['HTTP_RAW_POST_DATA'];	
+		$xml = isset($GLOBALS ['HTTP_RAW_POST_DATA'])?$GLOBALS ['HTTP_RAW_POST_DATA']:'';	
 		if(empty($xml)){
 		    return ;
 		}
@@ -221,7 +221,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		$amount = ( int ) ($amount * 100);
         
 		if($amount<=0||$amount>$total){
-			return new WP_Error( 'invalid_order',__('无效的退款金额' ,XH_WECHAT) );
+			return new WP_Error( 'invalid_order',__('Invalid refused amount!' ,XH_WECHAT) );
 		}
 	
 		$transaction_id = $trade_no;
