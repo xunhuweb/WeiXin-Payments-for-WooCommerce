@@ -279,12 +279,17 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
         $totalFee = ( int ) ($total * 100);
         
 		$input->SetTotal_fee ( $totalFee );
-		
+		$home_url = rtrim(home_url());
+		$posi =strripos($home_url, '/');
+		if($posi!==false&&$posi>7){
+		    $home_url.='/';
+		}
+		$siteurl= $home_url;
 		$date = new DateTime ();
 		$date->setTimezone ( new DateTimeZone ( 'Asia/Shanghai' ) );
 		$startTime = $date->format ( 'YmdHis' );
 		$input->SetTime_start ( $startTime );
-		$input->SetNotify_url (get_option('siteurl') );
+		$input->SetNotify_url ($siteurl);
 	
 		$input->SetTrade_type ( "NATIVE" );
 		$input->SetProduct_id ( $order->id );
