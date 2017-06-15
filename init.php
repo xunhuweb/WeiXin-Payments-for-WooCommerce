@@ -3,7 +3,7 @@
  * Plugin Name: WeiXin Payments for WooCommerce
  * Plugin URI: https://www.wpweixin.net/product/201.html
  * Description:给Woocommerce系统添加微信支付功能,支持扫码支付和退款功能。若需要企业版本，请访问<a href="http://www.wpweixin.net" target="_blank">http://www.wpweixin.net</a> 
- * Version: 1.8.1
+ * Version: 1.8.2
  * Author: 迅虎网络 
  * Author URI:http://www.wpweixin.net 
  * Text Domain: WeiXin Payments for WooCommerce
@@ -12,7 +12,7 @@ if (! defined ( 'ABSPATH' ))
 	exit (); // Exit if accessed directly
 
 if (! defined ( 'XH_WC_WEIXINPAY' )) {define ( 'XH_WC_WEIXINPAY', 'XH_WC_WEIXINPAY' );} else {return;}
-define('XH_WC_WeChat_VERSION','1.8.1');
+define('XH_WC_WeChat_VERSION','1.8.2');
 define('XH_WC_WeChat_ID','xh-wechat');
 define('XH_WC_WeChat_DIR',rtrim(plugin_dir_path(__FILE__),'/'));
 define('XH_WC_WeChat_URL',rtrim(plugin_dir_url(__FILE__),'/'));

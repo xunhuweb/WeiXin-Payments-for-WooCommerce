@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
-class WxPayNotify extends WxPayNotifyReply
+class WechatPaymentNotify extends WechatPaymentNotifyReply
 {
 	/**
 	 * 

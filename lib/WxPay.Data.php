@@ -10,7 +10,7 @@ require_once "WxPay.Exception.php";
  * 计算/设置/获取签名、输出xml格式的参数、从xml读取数据对象等
  *
  */
-class WxPayDataBase
+class WechatPaymentDataBase
 {
 	protected $values = array();
 	
@@ -45,14 +45,14 @@ class WxPayDataBase
 
 	/**
 	 * 输出xml字符
-	 * @throws WxPayException
+	 * @throws WechatPaymentException
 	**/
 	public function ToXml()
 	{
 		if(!is_array($this->values) 
 			|| count($this->values) <= 0)
 		{
-    		throw new WxPayException("数组数据异常！");
+    		throw new WechatPaymentException("数组数据异常！");
     	}
     	
     	$xml = "<xml>";
@@ -71,12 +71,12 @@ class WxPayDataBase
     /**
      * 将xml转为array
      * @param string $xml
-     * @throws WxPayException
+     * @throws WechatPaymentException
      */
 	public function FromXml($xml)
 	{	
 		if(!$xml){
-			throw new WxPayException("xml数据异常！");
+			throw new WechatPaymentException("xml数据异常！");
 		}
         //将XML转为array
         //禁止引用外部xml实体
@@ -135,7 +135,7 @@ class WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayResults extends WxPayDataBase
+class WechatPaymentResults extends WechatPaymentDataBase
 {
 	/**
 	 * 
@@ -145,14 +145,14 @@ class WxPayResults extends WxPayDataBase
 	{
 		//fix异常
 		if(!$this->IsSignSet()){
-			throw new WxPayException("签名错误！");
+			throw new WechatPaymentException("签名错误！");
 		}
 		
 		$sign = $this->MakeSign($WxCfg);
 		if($this->GetSign() == $sign){
 			return true;
 		}
-		throw new WxPayException("签名错误！");
+		throw new WechatPaymentException("签名错误！");
 	}
 	
 	/**
@@ -195,7 +195,7 @@ class WxPayResults extends WxPayDataBase
     /**
      * 将xml转为array
      * @param string $xml
-     * @throws WxPayException
+     * @throws WechatPaymentException
      */
 	public static function Init($xml)
 	{	
@@ -216,7 +216,7 @@ class WxPayResults extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayNotifyReply extends  WxPayDataBase
+class WechatPaymentNotifyReply extends  WechatPaymentDataBase
 {
 	/**
 	 * 
@@ -276,7 +276,7 @@ class WxPayNotifyReply extends  WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayUnifiedOrder extends WxPayDataBase
+class WechatPaymentUnifiedOrder extends WechatPaymentDataBase
 {	
 	/**
 	* 设置微信分配的公众账号ID
@@ -751,7 +751,7 @@ class WxPayUnifiedOrder extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayOrderQuery extends WxPayDataBase
+class WechatPaymentOrderQuery extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -889,7 +889,7 @@ class WxPayOrderQuery extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayCloseOrder extends WxPayDataBase
+class WechatPaymentCloseOrder extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -1001,7 +1001,7 @@ class WxPayCloseOrder extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayRefund extends WxPayDataBase
+class WechatPaymentRefund extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -1294,7 +1294,7 @@ class WxPayRefund extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayRefundQuery extends WxPayDataBase
+class WechatPaymentRefundQuery extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -1509,7 +1509,7 @@ class WxPayRefundQuery extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayDownloadBill extends WxPayDataBase
+class WechatPaymentDownloadBill extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -1672,7 +1672,7 @@ class WxPayDownloadBill extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayReport extends WxPayDataBase
+class WechatPaymentReport extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -2044,7 +2044,7 @@ class WxPayReport extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayShortUrl extends WxPayDataBase
+class WechatPaymentShortUrl extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -2156,7 +2156,7 @@ class WxPayShortUrl extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayMicroPay extends WxPayDataBase
+class WechatPaymentMicroPay extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -2553,7 +2553,7 @@ class WxPayMicroPay extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayReverse extends WxPayDataBase
+class WechatPaymentReverse extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -2691,7 +2691,7 @@ class WxPayReverse extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayJsApiPay extends WxPayDataBase
+class WechatPaymentJsApiPay extends WechatPaymentDataBase
 {
 	/**
 	* 设置微信分配的公众账号ID
@@ -2852,7 +2852,7 @@ class WxPayJsApiPay extends WxPayDataBase
  * @author widyhu
  *
  */
-class WxPayBizPayUrl extends WxPayDataBase
+class WechatPaymentBizPayUrl extends WechatPaymentDataBase
 {
 		/**
 	* 设置微信分配的公众账号ID

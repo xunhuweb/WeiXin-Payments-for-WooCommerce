@@ -30,7 +30,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		include_once ($lib . '/WxPay.Notify.php');
 		include_once ($lib . '/WxPay.Config.php');
 		include_once ($lib . '/log.php');
-		$this->config =new WxPayConfig ($this->get_option('wechatpay_appID'),  $this->get_option('wechatpay_mchId'), $this->get_option('wechatpay_key'));
+		$this->config =new WechatPaymentConfig ($this->get_option('wechatpay_appID'),  $this->get_option('wechatpay_mchId'), $this->get_option('wechatpay_key'));
 	}
 	function init_form_fields() {
 	    $this->form_fields = array (
@@ -106,11 +106,11 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	 * @param string $trimmarker
 	 */
 	public  function get_order_title($order,$limit=32,$trimmarker='...'){
-		$title="#{$order->id}|".get_option('blogname');
+		$title="#{$order->get_id()}|".get_option('blogname');
 		
 		$order_items =$order->get_items();
 		if($order_items&&count($order_items)>0){
-		    $title="#{$order->id}|";
+		    $title="#{$order->get_id()}|";
 		    $index=0;
 		    foreach ($order_items as $item_id =>$item){
 		        $title.= $item['name'];
@@ -121,7 +121,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		    }    
 		}
 		
-		return apply_filters('xh_wechat_wc_get_order_title', mb_strimwidth ( $title, 0,32, '...'));
+		return apply_filters('xh_wechat_wc_get_order_title', mb_strimwidth ( $title, 0,32, '...','utf-8'));
 	}
 	
 	public function get_order_status() {
@@ -151,6 +151,9 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	}
 	
 	public function check_wechatpay_response() {
+	    if(defined('WP_USE_THEMES')&&!WP_USE_THEMES){
+	        return;
+	    }
 		$xml = isset($GLOBALS ['HTTP_RAW_POST_DATA'])?$GLOBALS ['HTTP_RAW_POST_DATA']:'';	
 		if(empty($xml)){
 		    return ;
@@ -158,7 +161,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		
 		// 如果返回成功则验证签名
 		try {
-		    $result = WxPayResults::Init ( $xml );
+		    $result = WechatPaymentResults::Init ( $xml );
 		    if (!$result||! isset($result['transaction_id'])) {
 		        return;
 		    }
@@ -166,9 +169,9 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		    $transaction_id=$result ["transaction_id"];
 		    $order_id = $result['attach'];
 		    
-		    $input = new WxPayOrderQuery ();
+		    $input = new WechatPaymentOrderQuery ();
 		    $input->SetTransaction_id ( $transaction_id );
-		    $query_result = WxPayApi::orderQuery ( $input, $this->config );
+		    $query_result = WechatPaymentApi::orderQuery ( $input, $this->config );
 		    if ($query_result['result_code'] == 'FAIL' || $query_result['return_code'] == 'FAIL') {
                 throw new Exception(sprintf("return_msg:%s ;err_code_des:%s "), $query_result['return_msg'], $query_result['err_code_des']);
             }
@@ -182,13 +185,13 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		          $order->payment_complete ($transaction_id);
 		    }
 		    
-		    $reply = new WxPayNotifyReply ();
+		    $reply = new WechatPaymentNotifyReply ();
 		    $reply->SetReturn_code ( "SUCCESS" );
 		    $reply->SetReturn_msg ( "OK" );
 		    
 		    WxpayApi::replyNotify ( $reply->ToXml () );
 		    exit;
-		} catch ( WxPayException $e ) {
+		} catch ( WechatPaymentException $e ) {
 		    return;
 		}
 	}
@@ -228,18 +231,18 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		$total_fee = $total;
 		$refund_fee = $amount;
 	
-		$input = new WxPayRefund ();
+		$input = new WechatPaymentRefund ();
 		$input->SetTransaction_id ( $transaction_id );
 		$input->SetTotal_fee ( $total_fee );
 		$input->SetRefund_fee ( $refund_fee );
 	
-		$input->SetOut_refund_no ( $order->id.time());
+		$input->SetOut_refund_no ( $order->get_id().time());
 		$input->SetOp_user_id ( $this->config->getMCHID());
 	
 		try {
-			$result = WxPayApi::refund ( $input,60 ,$this->config);
+			$result = WechatPaymentApi::refund ( $input,60 ,$this->config);
 			if ($result ['result_code'] == 'FAIL' || $result ['return_code'] == 'FAIL') {
-				Log::DEBUG ( " XHWxPayApi::orderQuery:" . json_encode ( $result ) );
+				Log::DEBUG ( " XHWechatPaymentApi::orderQuery:" . json_encode ( $result ) );
 				throw new Exception ("return_msg:". $result ['return_msg'].';err_code_des:'. $result ['err_code_des'] );
 			}
 	
@@ -263,11 +266,11 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	    
         echo '<p>' . __ ( 'Please scan the QR code with WeChat to finish the payment.', 'wechatpay' ) . '</p>';
 
-		$input = new WxPayUnifiedOrder ();
+		$input = new WechatPaymentUnifiedOrder ();
 		$input->SetBody ($this->get_order_title($order) );
 	
-		$input->SetAttach ( $order->id );
-		$input->SetOut_trade_no ( md5(date ( "YmdHis" ).$order->id ));    
+		$input->SetAttach ( $order->get_id() );
+		$input->SetOut_trade_no ( md5(date ( "YmdHis" ).$order->get_id() ));    
 		$total = $order->get_total ();
         
 		$exchange_rate = floatval($this->get_option('exchange_rate'));
@@ -279,22 +282,17 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
         $totalFee = ( int ) ($total * 100);
         
 		$input->SetTotal_fee ( $totalFee );
-		$home_url = rtrim(home_url());
-		$posi =strripos($home_url, '/');
-		if($posi!==false&&$posi>7){
-		    $home_url.='/';
-		}
-		$siteurl= $home_url;
+		
 		$date = new DateTime ();
 		$date->setTimezone ( new DateTimeZone ( 'Asia/Shanghai' ) );
 		$startTime = $date->format ( 'YmdHis' );
 		$input->SetTime_start ( $startTime );
-		$input->SetNotify_url ($siteurl);
+		$input->SetNotify_url (get_option('siteurl') );
 	
 		$input->SetTrade_type ( "NATIVE" );
-		$input->SetProduct_id ( $order->id );
+		$input->SetProduct_id ( $order->get_id() );
 		try {
-		    $result = WxPayApi::unifiedOrder ( $input, 60, $this->config );
+		    $result = WechatPaymentApi::unifiedOrder ( $input, 60, $this->config );
 		} catch (Exception $e) {
 		    echo $e->getMessage();
 		    return;
@@ -309,7 +307,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		
 		$url =isset($result['code_url'])? $result ["code_url"]:'';
 		echo  '<input type="hidden" id="xh-wechat-payment-pay-url" value="'.$url.'"/>';
-		echo  '<div style="width:200px;height:200px" id="xh-wechat-payment-pay-img" data-oid="'.$order->id.'"></div>';
+		echo  '<div style="width:200px;height:200px" id="xh-wechat-payment-pay-img" data-oid="'.$order->get_id().'"></div>';
 	}
 }
 

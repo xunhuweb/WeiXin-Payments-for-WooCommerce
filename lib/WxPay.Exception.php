@@ -1,7 +1,7 @@
 <?php
 if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
-class WxPayException extends Exception {
+class WechatPaymentException extends Exception {
 	public function errorMessage()
 	{
 		return $this->getMessage();

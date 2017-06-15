@@ -5,7 +5,7 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
 * 	配置账号信息
 */
 
-class WxPayConfig
+class WechatPaymentConfig
 {
 	//=======【基本信息设置】=====================================
 	//
