@@ -106,11 +106,12 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	 * @param string $trimmarker
 	 */
 	public  function get_order_title($order,$limit=32,$trimmarker='...'){
-		$title="#{$order->get_id()}|".get_option('blogname');
+	    $id = method_exists($order, 'get_id')?$order->get_id():$order->id;
+		$title="#{$id}|".get_option('blogname');
 		
 		$order_items =$order->get_items();
 		if($order_items&&count($order_items)>0){
-		    $title="#{$order->get_id()}|";
+		    $title="#{$id}|";
 		    $index=0;
 		    foreach ($order_items as $item_id =>$item){
 		        $title.= $item['name'];
@@ -140,7 +141,8 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 	function wp_enqueue_scripts() {
 		$orderId = get_query_var ( 'order-pay' );
 		$order = new WC_Order ( $orderId );
-		if ($this->id == $order->payment_method) {
+		$payment_method = method_exists($order, 'get_payment_method')?$order->get_payment_method():$order->payment_method;
+		if ($this->id == $payment_method) {
 			if (is_checkout_pay_page () && ! isset ( $_GET ['pay_for_order'] )) {
 			    
 			    wp_enqueue_script ( 'XH_WECHAT_JS_QRCODE', XH_WC_WeChat_URL. '/js/qrcode.js', array (), XH_WC_WeChat_VERSION );
@@ -236,7 +238,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		$input->SetTotal_fee ( $total_fee );
 		$input->SetRefund_fee ( $refund_fee );
 	
-		$input->SetOut_refund_no ( $order->get_id().time());
+		$input->SetOut_refund_no ( $order_id.time());
 		$input->SetOp_user_id ( $this->config->getMCHID());
 	
 		try {
@@ -269,8 +271,8 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		$input = new WechatPaymentUnifiedOrder ();
 		$input->SetBody ($this->get_order_title($order) );
 	
-		$input->SetAttach ( $order->get_id() );
-		$input->SetOut_trade_no ( md5(date ( "YmdHis" ).$order->get_id() ));    
+		$input->SetAttach ( $order_id );
+		$input->SetOut_trade_no ( md5(date ( "YmdHis" ).$order_id ));    
 		$total = $order->get_total ();
         
 		$exchange_rate = floatval($this->get_option('exchange_rate'));
@@ -290,7 +292,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		$input->SetNotify_url (get_option('siteurl') );
 	
 		$input->SetTrade_type ( "NATIVE" );
-		$input->SetProduct_id ( $order->get_id() );
+		$input->SetProduct_id ($order_id );
 		try {
 		    $result = WechatPaymentApi::unifiedOrder ( $input, 60, $this->config );
 		} catch (Exception $e) {
@@ -307,7 +309,7 @@ class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
 		
 		$url =isset($result['code_url'])? $result ["code_url"]:'';
 		echo  '<input type="hidden" id="xh-wechat-payment-pay-url" value="'.$url.'"/>';
-		echo  '<div style="width:200px;height:200px" id="xh-wechat-payment-pay-img" data-oid="'.$order->get_id().'"></div>';
+		echo  '<div style="width:200px;height:200px" id="xh-wechat-payment-pay-img" data-oid="'.$order_id.'"></div>';
 	}
 }
 
