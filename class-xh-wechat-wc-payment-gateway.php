@@ -2,7 +2,7 @@
 if (! defined ( 'ABSPATH' ))
 	exit (); // Exit if accessed directly
 
-class XH_Wechat_WC_Payment_Gateway extends WC_Payment_Gateway {
+class XHWechatWCPaymentGateway extends WC_Payment_Gateway {
     private $config;
     
 	public function __construct() {
